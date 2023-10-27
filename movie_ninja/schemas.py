@@ -1,4 +1,4 @@
-from ninja import Schema, UploadedFile
+from ninja import Schema
 from datetime import date
 from typing import Optional, List
 

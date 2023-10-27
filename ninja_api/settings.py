@@ -268,8 +268,9 @@ CKEDITOR_CONFIGS = {
     }
 }
 
+AUTH_USER_MODEL = "movie_ninja.CustomUser"
+
 # JWT Authentication Setting
-NINJA_JWT_SECRET_KEY = "your_secret_key_here"
 NINJA_JWT_ALGORITHM = "HS256"
 NINJA_JWT_ACCESS_TOKEN_EXPIRES = 15
 NINJA_JWT_REFRESH_TOKEN_EXPIRES = 1440

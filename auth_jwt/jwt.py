@@ -63,14 +63,9 @@ class TokenHandler:
         return user
 
 
-def get_current_user(token: str):
-    user = TokenHandler.get_user_from_token(token)
-    return user
-
-
 class AuthBearer(HttpBearer):
     def authenticate(self, request, token: str):
         if token:
-            user = get_current_user(token)
+            user = TokenHandler.get_user_from_token(token)
             if user:
                 return user

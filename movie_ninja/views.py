@@ -1,4 +1,4 @@
-from ninja import Router, Path, Form
+from ninja import Router, Path
 from .models import Actor, Movie, Review, Rating, RatingStar
 from .schemas import (
     ActorListSchema,
@@ -6,7 +6,6 @@ from .schemas import (
     ActorCreateSchema,
     MovieDetailSchema,
     MovieListSchema,
-    CreateMovieSchema,
     ReviewCreateSchema,
     ReviewResponseSchema,
     ReviewSchema,
@@ -69,13 +68,14 @@ def create_actor(request, actor_in: ActorCreateSchema):
 )
 def get_actor(request, actor_id: int = Path(...)):
     actor = get_object_or_404(Actor, id=actor_id)
-    return {
-        "id": actor.id,
-        "name": actor.name,
-        "age": actor.age,
-        "description": actor.description,
-        "image": actor.image,
-    }
+    return actor
+    # return {
+    #     "id": actor.id,
+    #     "name": actor.name,
+    #     "age": actor.age,
+    #     "description": actor.description,
+    #     "image": actor.image,
+    # }
 
 
 @api_router.get(
@@ -120,7 +120,7 @@ def get_movie(request, movie_id: int = Path(...)):
         "budget": movie.budget,
         "fees_in_usa": movie.fees_in_usa,
         "fess_in_world": movie.fess_in_world,
-        "category": movie.category.name if movie.category else None,
+        "category": movie.category.name,
         "url": movie.url,
         "reviews": [review.id for review in movie.reviews.all()],
     }
@@ -186,7 +186,12 @@ def create_rating(request, data: CreateRatingSchema):
     star = get_object_or_404(RatingStar, id=star_id)
     movie = get_object_or_404(Movie, id=movie_id)
 
-    rating = Rating(ip=ip, star=star, movie=movie)
-    rating.save()
+    rating, created = Rating.objects.update_or_create(
+        ip=ip, movie=movie, defaults={"star": star}
+    )
+
+    if not created and rating.star != star:
+        rating.star = star
+        rating.save()
 
     return 201, rating

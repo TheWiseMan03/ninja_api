@@ -1,4 +1,3 @@
-from pytest_factoryboy import register
 import pytest
 from movie_ninja.models import (
     Token,
@@ -7,64 +6,39 @@ from movie_ninja.models import (
     CustomUser,
     Review,
     RatingStar,
-    Rating,
 )
 from ninja.testing import TestClient
 from auth_jwt.views import auth_router
 from movie_ninja.views import api_router
-from .factories import (
-    CustomUserFactory,
-    TokenFactory,
-    CategoryFactory,
-    ActorFactory,
-    GenreFactory,
-    MovieFactory,
-    MovieShotsFactory,
-    RatingStarFactory,
-    RatingFactory,
-    ReviewFactory,
-)
 
 
-register(CustomUserFactory)
-register(TokenFactory)
-register(CategoryFactory)
-register(ActorFactory)
-register(GenreFactory)
-register(MovieFactory)
-register(MovieShotsFactory)
-register(RatingStarFactory)
-register(RatingFactory)
-register(ReviewFactory)
+@pytest.mark.django_db
+@pytest.fixture
+def setup():
+    CustomUser.objects.create_user(
+        username="gigia",
+        email="aa@aaaaa.com",
+        password="456789",
+        first_name="First",
+        last_name="Last",
+    )
 
 
-# @pytest.mark.django_db
-# @pytest.fixture
-# def setup():
-#     CustomUser.objects.create_user(
-#         username="gigia",
-#         email="aa@aaaaa.com",
-#         password="456789",
-#         first_name="First",
-#         last_name="Last",
-#     )
+@pytest.mark.django_db
+@pytest.fixture
+def auth_client(setup):
+    client = TestClient(auth_router)
+    response = client.post(
+        "/login",
+        json={
+            "username": "gigia",
+            "password": "456789",
+        },
+    )
+    access_token_str = response.json()["access_token"]
+    token_instance = Token.objects.get(access_token=access_token_str)
 
-
-# @pytest.mark.django_db
-# @pytest.fixture
-# def auth_client(setup):
-#     client = TestClient(auth_router)
-#     response = client.post(
-#         "/login",
-#         json={
-#             "username": "gigia",
-#             "password": "456789",
-#         },
-#     )
-#     access_token_str = response.json()["access_token"]
-#     token_instance = Token.objects.get(access_token=access_token_str)
-
-#     return client, token_instance
+    return client, token_instance
 
 
 @pytest.fixture

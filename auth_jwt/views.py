@@ -13,6 +13,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from .jwt import AuthBearer, TokenHandler
 from django.shortcuts import get_object_or_404
 from email_validator import validate_email, EmailNotValidError
+from django.contrib.auth import authenticate
+
 
 auth_router = Router()
 
@@ -66,11 +68,11 @@ def register(request, data: RegistrationSchema):
     )
 
 
-@auth_router.post("/login")
+@auth_router.post("/login", summary="Endpoint to log user in")
 def login(request, payload: UserLoginSchema):
-    user = get_object_or_404(CustomUser, username=payload.username)
-
-    if not user.check_password(payload.password):
+    get_object_or_404(CustomUser, username=payload.username)
+    user = authenticate(username=payload.username, password=payload.password)
+    if user is None:
         return Response(
             {"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
         )
@@ -118,11 +120,11 @@ def update_profile(request, update_data: UpdateSchema):
 
 
 @auth_router.put("/update_password", auth=AuthBearer())
-def update_password(request, update_data: PasswordUpdateSchema):
+def update_password(request, data: PasswordUpdateSchema):
     try:
-        user = CustomUser.objects.get(username=update_data.username)
-        if user.check_password(update_data.password):
-            user.set_password(update_data.new_password)
+        user = get_object_or_404(CustomUser, username=data.username)
+        if user.check_password(data.password):
+            user.set_password(data.new_password)
             user.save()
             return {"detail": "Password updated successfully"}
         else:
